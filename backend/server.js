@@ -3,7 +3,13 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const databaseConnect = require("./config/database");
 const app = express();
-app.use(cors())
+
+app.use(
+    cors({
+        origin: "http://localhost:3000",
+        credentials: true,
+    })
+);
 
 const PORT = process.env.PORT || 5050;
 
