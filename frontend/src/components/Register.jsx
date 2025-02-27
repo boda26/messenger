@@ -5,10 +5,10 @@ import { userRegister } from "../store/actions/authAction";
 import { useAlert } from "react-alert";
 
 const Register = () => {
-    // const alert = useAlert();
-    // const { loading, authenticate, error, successMessage, myInfo } =
-    //     useSelector((state) => state.auth);
-    // console.log(myInfo);
+    const alert = useAlert();
+    const { loading, authenticate, error, successMessage, myInfo } =
+        useSelector((state) => state.auth);
+    console.log(myInfo);
     const dispatch = useDispatch();
 
     const [state, setState] = useState({
