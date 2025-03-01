@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { userRegister } from "../store/actions/authAction";
 import { useAlert } from "react-alert";
+import { ERROR_CLEAR, SUCCESS_MESSAGE_CLEAR } from "../store/types/authType";
 
 const Register = () => {
+    const navigate = useNavigate();
     const alert = useAlert();
     const { loading, authenticate, error, successMessage, myInfo } =
         useSelector((state) => state.auth);
@@ -53,6 +55,24 @@ const Register = () => {
         formData.append("image", image);
         dispatch(userRegister(formData));
     };
+
+    useEffect(() => {
+        if (authenticate) {
+            navigate("/");
+        }
+        if (successMessage) {
+            alert.success(successMessage);
+            dispatch({
+                type: SUCCESS_MESSAGE_CLEAR,
+            });
+        }
+        if (error) {
+            error.map((err) => alert.error(err));
+            dispatch({
+                type: ERROR_CLEAR,
+            });
+        }
+    }, [successMessage, error]);
 
     return (
         <div className="register">

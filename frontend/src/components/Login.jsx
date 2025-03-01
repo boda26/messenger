@@ -1,7 +1,53 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, navigate, useNavigate } from "react-router-dom";
+import { userLogin } from "../store/actions/authAction";
+import { useAlert } from "react-alert";
+import { useDispatch, useSelector } from "react-redux";
+import { ERROR_CLEAR, SUCCESS_MESSAGE_CLEAR } from "../store/types/authType";
 
 const Login = () => {
+    const dispatch = useDispatch();
+    const alert = useAlert();
+    const navigate = useNavigate();
+
+    const { loading, authenticate, error, successMessage, myInfo } =
+        useSelector((state) => state.auth);
+
+    const [state, setState] = useState({
+        email: "",
+        password: "",
+    });
+
+    const inputHandle = (e) => {
+        setState({
+            ...state,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const login = (e) => {
+        e.preventDefault();
+        dispatch(userLogin(state));
+    };
+
+    useEffect(() => {
+        if (authenticate) {
+            navigate("/");
+        }
+        if (successMessage) {
+            alert.success(successMessage);
+            dispatch({
+                type: SUCCESS_MESSAGE_CLEAR,
+            });
+        }
+        if (error) {
+            error.map((err) => alert.error(err));
+            dispatch({
+                type: ERROR_CLEAR,
+            });
+        }
+    }, [successMessage, error]);
+
     return (
         <div className="register">
             <div className="card">
@@ -10,7 +56,7 @@ const Login = () => {
                 </div>
 
                 <div className="card-body">
-                    <form>
+                    <form onSubmit={login}>
                         <div className="form-group">
                             <label htmlFor="email">Email</label>
                             <input
@@ -18,6 +64,9 @@ const Login = () => {
                                 className="form-control"
                                 placeholder="Email"
                                 id="email"
+                                onChange={inputHandle}
+                                name="email"
+                                value={state.email}
                             />
                         </div>
 
@@ -28,6 +77,9 @@ const Login = () => {
                                 className="form-control"
                                 placeholder="Password"
                                 id="password"
+                                onChange={inputHandle}
+                                name="password"
+                                value={state.password}
                             />
                         </div>
 

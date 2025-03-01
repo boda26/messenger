@@ -65,14 +65,6 @@ module.exports.userRegister = (req, res) => {
                     });
                 } else {
                     fs.copyFile(image.filepath, newPath, async (error) => {
-                        // if (error) {
-                        //     console.error("Error copying file:", error);
-                        //     return res.status(500).json({
-                        //         error: {
-                        //             errorMessage: ["Failed to save image"],
-                        //         },
-                        //     });
-                        // }
                         if (!error) {
                             const userCreate = await registerModel.create({
                                 userName,
@@ -129,4 +121,82 @@ module.exports.userRegister = (req, res) => {
             }
         }
     });
+};
+
+module.exports.userLogin = async (req, res) => {
+    const error = [];
+    const { email, password } = req.body;
+    if (!email) {
+        error.push("please provide email");
+    }
+    if (!password) {
+        error.push("please provide a password");
+    }
+    if (email && !validator.isEmail(email)) {
+        error.push("please provide a valid email");
+    }
+    if (error.length > 0) {
+        res.status(400).json({
+            error: {
+                errorMessage: error,
+            },
+        });
+    } else {
+        try {
+            const checkUser = await registerModel
+                .findOne({
+                    email: email,
+                })
+                .select("+password");
+            if (checkUser) {
+                const matchPassword = await bcrypt.compare(
+                    password,
+                    checkUser.password
+                );
+                if (matchPassword) {
+                    const token = jwt.sign(
+                        {
+                            id: checkUser._id,
+                            email: checkUser.email,
+                            userName: checkUser.userName,
+                            image: checkUser.image,
+                            registerTime: checkUser.createdAt,
+                        },
+                        process.env.SECRET,
+                        {
+                            expiresIn: process.env.TOKEN_EXP,
+                        }
+                    );
+                    const options = {
+                        expires: new Date(
+                            Date.now() +
+                                process.env.COOKIE_EXP * 24 * 60 * 60 * 1000
+                        ),
+                    };
+                    res.status(200).cookie("authToken", token, options).json({
+                        successMessage: "Login successful!",
+                        token,
+                    });
+                } else {
+                    res.status(400).json({
+                        error: {
+                            errorMessage: ["Your password is not valid!"],
+                        },
+                    });
+                }
+            } else {
+                res.status(400).json({
+                    error: {
+                        errorMessage: ["Your email is not valid!"],
+                    },
+                });
+            }
+        } catch {
+            res.status(404).json({
+                error: {
+                    errorMessage: ["internal server error"],
+                },
+            });
+        }
+    }
 };

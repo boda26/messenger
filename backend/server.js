@@ -3,6 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const databaseConnect = require("./config/database");
 const app = express();
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 
 app.use(
     cors({
@@ -10,6 +12,8 @@ app.use(
         credentials: true,
     })
 );
+app.use(bodyParser.json());
+app.use(cookieParser());
 
 const PORT = process.env.PORT || 5050;
 
