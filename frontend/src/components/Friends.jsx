@@ -1,19 +1,19 @@
 import React from "react";
 
-function Friends() {
+function Friends({ friend }) {
     return (
         <div className="friend">
             <div className="friend-image">
                 <div className="image">
-					<img src="/image/aaa.webp" />
-				</div>
+                    <img src={`./image/${friend.image}`} alt="" />
+                </div>
             </div>
 
-			<div className="friend-name-seen">
-				<div className="friend-name">
-					<h4>Jack</h4>
-				</div>
-			</div>
+            <div className="friend-name-seen">
+                <div className="friend-name">
+                    <h4>{friend.userName}</h4>
+                </div>
+            </div>
         </div>
     );
 }

@@ -5,6 +5,9 @@ const databaseConnect = require("./config/database");
 const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const PORT = process.env.PORT || 5050;
+const authRouter = require("./routes/authRoute");
+const messengerRouter = require("./routes/messengerRoute");
 
 app.use(
     cors({
@@ -14,10 +17,6 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(cookieParser());
-
-const PORT = process.env.PORT || 5050;
-
-const authRouter = require("./routes/authRoute");
 
 dotenv.config({
     path: "backend/config/config.env",
@@ -30,6 +29,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/messenger", authRouter);
+
+app.use("/api/messenger", messengerRouter);
 
 app.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`);

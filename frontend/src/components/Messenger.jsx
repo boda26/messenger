@@ -3,8 +3,18 @@ import { FaEllipsisH, FaEdit, FaSistrix } from "react-icons/fa";
 import ActiveFriend from "./ActiveFriend";
 import Friends from "./Friends";
 import RightSide from "./RightSide";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { getFriends } from "../store/actions/messengerAction";
 
 export const Messenger = () => {
+    const { myInfo } = useSelector((state) => state.auth);
+    const { friends } = useSelector((state) => state.messenger);
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(getFriends());
+    }, []);
+
     return (
         <div className="messenger">
             <div className="row">
@@ -13,10 +23,10 @@ export const Messenger = () => {
                         <div className="top">
                             <div className="image-name">
                                 <div className="image">
-                                    <img src="" />
+                                    <img src={`./image/${myInfo.image}`} alt="" />
                                 </div>
                                 <div className="name">
-                                    <h3>Hi Miles</h3>
+                                    <h3>{myInfo.userName}</h3>
                                 </div>
                             </div>
 
@@ -48,17 +58,13 @@ export const Messenger = () => {
                         </div>
 
                         <div className="friends">
-                            <div className="hover-friend">
-                                <Friends />
-                            </div>
-
-                            <div className="hover-friend">
-                                <Friends />
-                            </div>
-
-                            <div className="hover-friend">
-                                <Friends />
-                            </div>
+                            {friends && friends.length > 0
+                                ? friends.map((fd) => (
+                                      <div className="hover-friend">
+                                          <Friends friend={fd} />
+                                      </div>
+                                  ))
+                                : "No Friend"}
                         </div>
                     </div>
                 </div>
