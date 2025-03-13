@@ -1,5 +1,10 @@
 import axois from "axios";
-import { FRIEND_GET_SUCCESS } from "../types/messengerType";
+import {
+    FRIEND_GET_SUCCESS,
+    MESSAGE_GET_SUCCESS,
+    MESSAGE_SEND_SUCCESS,
+} from "../types/messengerType";
+import axios from "axios";
 
 export const getFriends = () => async (dispatch) => {
     try {
@@ -25,8 +30,32 @@ export const messageSend = (data) => async (dispatch) => {
             data,
             { withCredentials: true }
         );
-        console.log(data);
+        dispatch({
+            type: MESSAGE_SEND_SUCCESS,
+            payload: {
+                message: response.data.message,
+            },
+        });
     } catch (error) {
         console.log(error.response.data);
     }
+};
+
+export const getMessage = (id) => {
+    return async (dispatch) => {
+        try {
+            const response = await axios.get(
+                `http://localhost:5050/api/messenger/get-message/${id}`,
+                { withCredentials: true }
+            );
+            dispatch({
+                type: MESSAGE_GET_SUCCESS,
+                payload: {
+                    message: response.data.message,
+                },
+            });
+        } catch (error) {
+            console.log(error.response.data);
+        }
+    };
 };
