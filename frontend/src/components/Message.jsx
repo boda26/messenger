@@ -13,7 +13,13 @@ const Message = ({ message, currentFriend, scrollRef }) => {
                               <div className="image-message">
                                   <div className="my-text">
                                       <p className="message-text">
-                                          {m.message.text}
+                                          {m.message.text === "" ? (
+                                              <img
+                                                  src={`./image/${m.message.image}`}
+                                              />
+                                          ) : (
+                                              m.message.text
+                                          )}
                                       </p>
                                   </div>
                               </div>

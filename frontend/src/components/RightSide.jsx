@@ -12,6 +12,8 @@ const RightSide = (props) => {
         sendMessage,
         message,
         scrollRef,
+        emojiSend,
+        imageSend
     } = props;
 
     return (
@@ -60,6 +62,8 @@ const RightSide = (props) => {
                                 inputHandle={inputHandle}
                                 newMessage={newMessage}
                                 sendMessage={sendMessage}
+                                emojiSend={emojiSend}
+                                imageSend={imageSend}
                             />
                         </div>
                     </div>
