@@ -9,15 +9,18 @@ import {
     getFriends,
     messageSend,
     getMessage,
-    ImageMessageSend
+    ImageMessageSend,
 } from "../store/actions/messengerAction";
+import { io } from "socket.io-client";
 
 export const Messenger = () => {
     const { myInfo } = useSelector((state) => state.auth);
     const { friends, message } = useSelector((state) => state.messenger);
     const [currentFriend, setCurrentFriend] = useState("");
     const [newMessage, setNewMessage] = useState("");
+    const [activeUser, setActiveUser] = useState([]);
     const scrollRef = useRef();
+    const socket = useRef();
 
     const inputHandle = (e) => {
         setNewMessage(e.target.value);
@@ -52,6 +55,21 @@ export const Messenger = () => {
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [message]);
+
+    useEffect(() => {
+        socket.current = io("ws://localhost:8000");
+    }, []);
+
+    useEffect(() => {
+        socket.current.emit("addUser", myInfo.id, myInfo);
+    }, []);
+
+    useEffect(() => {
+        socket.current.on("getUser", (users) => {
+            const filterUser = users.filter((u) => u.userId !== myInfo.id);
+            setActiveUser(filterUser);
+        });
+    }, []);
 
     const emojiSend = (emu) => {
         setNewMessage(`${newMessage}` + emu);
@@ -112,7 +130,11 @@ export const Messenger = () => {
                         </div>
 
                         <div className="active-friends">
-                            <ActiveFriend />
+                            {activeUser && activeUser.length > 0
+                                ? activeUser.map((u) => (
+                                      <ActiveFriend setCurrentFriend={setCurrentFriend} user={u} />
+                                  ))
+                                : ""}
                         </div>
 
                         <div className="friends">
@@ -143,6 +165,7 @@ export const Messenger = () => {
                         scrollRef={scrollRef}
                         emojiSend={emojiSend}
                         imageSend={imageSend}
+                        activeUser={activeUser}
                     />
                 ) : (
                     "Please select your friend!"
