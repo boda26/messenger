@@ -19,6 +19,7 @@ export const Messenger = () => {
     const [currentFriend, setCurrentFriend] = useState("");
     const [newMessage, setNewMessage] = useState("");
     const [activeUser, setActiveUser] = useState([]);
+    const [socketMessage, setSocketMessage] = useState("");
     const scrollRef = useRef();
     const socket = useRef();
 
@@ -33,7 +34,18 @@ export const Messenger = () => {
             receiverId: currentFriend._id,
             message: newMessage ? newMessage : "❤",
         };
+        socket.current.emit("sendMessage", {
+            senderId: myInfo.id,
+            senderName: myInfo.userName,
+            receiverId: currentFriend._id,
+            time: new Date(),
+            message: {
+                text: newMessage ? newMessage : "❤",
+                image: "",
+            },
+        });
         dispatch(messageSend(data));
+        setNewMessage("");
     };
 
     const dispatch = useDispatch();
@@ -58,11 +70,30 @@ export const Messenger = () => {
 
     useEffect(() => {
         socket.current = io("ws://localhost:8000");
+        socket.current.on("getMessage", (data) => {
+            setSocketMessage(data);
+        });
     }, []);
 
     useEffect(() => {
         socket.current.emit("addUser", myInfo.id, myInfo);
     }, []);
+
+    useEffect(() => {
+        if (socketMessage && currentFriend) {
+            if (
+                socketMessage.senderId === currentFriend._id &&
+                socketMessage.receiverId === myInfo.id
+            ) {
+                dispatch({
+                    type: "SOCKET_MESSAGE",
+                    payload: {
+                        message: socketMessage,
+                    },
+                });
+            }
+        }
+    }, [socketMessage]);
 
     useEffect(() => {
         socket.current.on("getUser", (users) => {
@@ -132,7 +163,10 @@ export const Messenger = () => {
                         <div className="active-friends">
                             {activeUser && activeUser.length > 0
                                 ? activeUser.map((u) => (
-                                      <ActiveFriend setCurrentFriend={setCurrentFriend} user={u} />
+                                      <ActiveFriend
+                                          setCurrentFriend={setCurrentFriend}
+                                          user={u}
+                                      />
                                   ))
                                 : ""}
                         </div>

@@ -35,7 +35,13 @@ const Message = ({ message, currentFriend, scrollRef }) => {
                                   <div className="message-time">
                                       <div className="fd-text">
                                           <p className="message-text">
-                                              {m.message.text}
+                                              {m.message.text === "" ? (
+                                                  <img
+                                                      src={`./image/${m.message.image}`}
+                                                  />
+                                              ) : (
+                                                  m.message.text
+                                              )}
                                           </p>
                                       </div>
                                       <div className="time">3 Jan 2022</div>

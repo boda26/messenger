@@ -2,7 +2,6 @@ import React from "react";
 import { FaCaretSquareDown, FaEdit, FaSistrix } from "react-icons/fa";
 
 const FriendInfo = ({ currentFriend, activeUser }) => {
-    console.log(activeUser.some((u) => u.userId === currentFriend._id));
     return (
         <div className="friend-info">
             <input type="checkbox" id="gallery" />
@@ -23,7 +22,7 @@ const FriendInfo = ({ currentFriend, activeUser }) => {
 
             <div className="others">
                 <div className="custom-chat">
-                    <h3>Coustomise Chat </h3>
+                    <h3>Customize Chat </h3>
                     <FaCaretSquareDown />
                 </div>
 
