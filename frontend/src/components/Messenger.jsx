@@ -20,11 +20,17 @@ export const Messenger = () => {
     const [newMessage, setNewMessage] = useState("");
     const [activeUser, setActiveUser] = useState([]);
     const [socketMessage, setSocketMessage] = useState("");
+    const [typingMessage, setTypingMessage] = useState("");
     const scrollRef = useRef();
     const socket = useRef();
 
     const inputHandle = (e) => {
         setNewMessage(e.target.value);
+        socket.current.emit("typingMessage", {
+            senderId: myInfo.id,
+            receiverId: currentFriend._id,
+            msg: e.target.value,
+        });
     };
 
     const sendMessage = (e) => {
@@ -34,6 +40,7 @@ export const Messenger = () => {
             receiverId: currentFriend._id,
             message: newMessage ? newMessage : "❤",
         };
+
         socket.current.emit("sendMessage", {
             senderId: myInfo.id,
             senderName: myInfo.userName,
@@ -44,6 +51,13 @@ export const Messenger = () => {
                 image: "",
             },
         });
+
+        socket.current.emit("typingMessage", {
+            senderId: myInfo.id,
+            receiverId: currentFriend._id,
+            msg: "",
+        });
+
         dispatch(messageSend(data));
         setNewMessage("");
     };
@@ -70,8 +84,13 @@ export const Messenger = () => {
 
     useEffect(() => {
         socket.current = io("ws://localhost:8000");
+
         socket.current.on("getMessage", (data) => {
             setSocketMessage(data);
+        });
+
+        socket.current.on("typingMessageGet", (data) => {
+            setTypingMessage(data);
         });
     }, []);
 
@@ -104,12 +123,29 @@ export const Messenger = () => {
 
     const emojiSend = (emu) => {
         setNewMessage(`${newMessage}` + emu);
+        socket.current.emit("typingMessage", {
+            senderId: myInfo.id,
+            receiverId: currentFriend._id,
+            msg: emu,
+        });
     };
 
     const imageSend = (e) => {
         if (e.target.files.length !== 0) {
             const imageName = e.target.files[0].name;
             const newImageName = Date.now() + imageName;
+
+            socket.current.emit("sendMessage", {
+                senderId: myInfo.id,
+                senderName: myInfo.userName,
+                receiverId: currentFriend._id,
+                time: new Date(),
+                message: {
+                    text: "",
+                    image: newImageName,
+                },
+            });
+
             const formData = new FormData();
             formData.append("imageName", newImageName);
             formData.append("senderName", myInfo.userName);
@@ -200,6 +236,7 @@ export const Messenger = () => {
                         emojiSend={emojiSend}
                         imageSend={imageSend}
                         activeUser={activeUser}
+                        typingMessage={typingMessage}
                     />
                 ) : (
                     "Please select your friend!"
