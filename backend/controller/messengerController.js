@@ -4,14 +4,71 @@ const formidable = require("formidable");
 const fs = require("fs");
 const path = require("path");
 
+const getLastMessage = async (myId, fdId) => {
+    const msg = await messageModel
+        .findOne({
+            $or: [
+                {
+                    $and: [
+                        {
+                            senderId: {
+                                $eq: myId,
+                            },
+                        },
+                        {
+                            receiverId: {
+                                $eq: fdId,
+                            },
+                        },
+                    ],
+                },
+                {
+                    $and: [
+                        {
+                            senderId: {
+                                $eq: fdId,
+                            },
+                        },
+                        {
+                            receiverId: {
+                                $eq: myId,
+                            },
+                        },
+                    ],
+                },
+            ],
+        })
+        .sort({
+            updatedAt: -1,
+        });
+    return msg;
+};
+
 module.exports.getFriends = async (req, res) => {
     const myId = req.myId;
+    let fnd_msg = [];
     try {
-        const friendGet = await User.find({});
-        const filter = friendGet.filter((d) => d.id !== myId);
+        const friendGet = await User.find({
+            _id: {
+                $ne: myId,
+            },
+        });
+        // const filter = friendGet.filter((d) => d.id !== myId);
+
+        for (let i = 0; i < friendGet.length; i++) {
+            let lmsg = await getLastMessage(myId, friendGet[i].id);
+            fnd_msg = [
+                ...fnd_msg,
+                {
+                    fndInfo: friendGet[i],
+                    msgInfo: lmsg,
+                },
+            ];
+        }
+
         res.status(200).json({
             success: true,
-            friends: filter,
+            friends: fnd_msg,
         });
     } catch (error) {
         res.status(500).json({
@@ -52,12 +109,43 @@ module.exports.messageGet = async (req, res) => {
     const myId = req.myId;
     const fdId = req.params.id;
     try {
-        let getAllMessage = await messageModel.find({});
-        getAllMessage = getAllMessage.filter(
-            (m) =>
-                (m.senderId === myId && m.receiverId === fdId) ||
-                (m.receiverId === myId && m.senderId === fdId)
-        );
+        let getAllMessage = await messageModel.find({
+            $or: [
+                {
+                    $and: [
+                        {
+                            senderId: {
+                                $eq: myId,
+                            },
+                        },
+                        {
+                            receiverId: {
+                                $eq: fdId,
+                            },
+                        },
+                    ],
+                },
+                {
+                    $and: [
+                        {
+                            senderId: {
+                                $eq: fdId,
+                            },
+                        },
+                        {
+                            receiverId: {
+                                $eq: myId,
+                            },
+                        },
+                    ],
+                },
+            ],
+        });
+        // getAllMessage = getAllMessage.filter(
+        //     (m) =>
+        //         (m.senderId === myId && m.receiverId === fdId) ||
+        //         (m.receiverId === myId && m.senderId === fdId)
+        // );
         res.status(200).json({
             success: true,
             message: getAllMessage,
@@ -77,26 +165,38 @@ module.exports.imageMessageSend = (req, res) => {
 
     form.parse(req, (err, fields, files) => {
         if (err) {
-            return res.status(400).json({ error: { errorMessage: "Form parsing error" } });
+            return res
+                .status(400)
+                .json({ error: { errorMessage: "Form parsing error" } });
         }
 
-        const senderName = Array.isArray(fields.senderName) ? fields.senderName[0] : fields.senderName;
-        const receiverId = Array.isArray(fields.receiverId) ? fields.receiverId[0] : fields.receiverId;
-        const imageName = Array.isArray(fields.imageName) ? fields.imageName[0] : fields.imageName;
+        const senderName = Array.isArray(fields.senderName)
+            ? fields.senderName[0]
+            : fields.senderName;
+        const receiverId = Array.isArray(fields.receiverId)
+            ? fields.receiverId[0]
+            : fields.receiverId;
+        const imageName = Array.isArray(fields.imageName)
+            ? fields.imageName[0]
+            : fields.imageName;
 
         const file = Array.isArray(files.image) ? files.image[0] : files.image;
-        const safeImageName = Array.isArray(imageName) ? imageName[0] : imageName;
+        const safeImageName = Array.isArray(imageName)
+            ? imageName[0]
+            : imageName;
         file.originalFilename = safeImageName;
 
         const destinationDir = "frontend/public/image";
         const newPath = path.join(destinationDir, file.originalFilename);
-        const safeFilePath = Array.isArray(file.filepath) ? file.filepath[0] : file.filepath;
+        const safeFilePath = Array.isArray(file.filepath)
+            ? file.filepath[0]
+            : file.filepath;
 
         try {
             fs.copyFile(safeFilePath, newPath, async (err) => {
                 if (err) {
                     return res.status(500).json({
-                        error: { errorMessage: "Image upload failed!" }
+                        error: { errorMessage: "Image upload failed!" },
                     });
                 }
 
@@ -117,9 +217,8 @@ module.exports.imageMessageSend = (req, res) => {
             });
         } catch (error) {
             res.status(500).json({
-                error: { errorMessage: "Internal server error" }
+                error: { errorMessage: "Internal server error" },
             });
         }
     });
 };
-
