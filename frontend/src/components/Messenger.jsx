@@ -12,6 +12,10 @@ import {
     ImageMessageSend,
 } from "../store/actions/messengerAction";
 import { io } from "socket.io-client";
+import toast, { Toaster } from "react-hot-toast";
+import useSound from "use-sound";
+import notificationSound from "../audio/notification.mp3";
+import sendingSound from "../audio/sending.mp3";
 
 export const Messenger = () => {
     const { myInfo } = useSelector((state) => state.auth);
@@ -21,6 +25,8 @@ export const Messenger = () => {
     const [activeUser, setActiveUser] = useState([]);
     const [socketMessage, setSocketMessage] = useState("");
     const [typingMessage, setTypingMessage] = useState("");
+    const [notificationSPlay] = useSound(notificationSound);
+    const [sendingSPlay] = useSound(sendingSound);
     const scrollRef = useRef();
     const socket = useRef();
 
@@ -35,6 +41,7 @@ export const Messenger = () => {
 
     const sendMessage = (e) => {
         e.preventDefault();
+        sendingSPlay();
         const data = {
             senderName: myInfo.userName,
             receiverId: currentFriend._id,
@@ -121,6 +128,17 @@ export const Messenger = () => {
         });
     }, []);
 
+    useEffect(() => {
+        if (
+            socketMessage &&
+            socketMessage.senderId !== currentFriend._id &&
+            socketMessage.receiverId === myInfo.id
+        ) {
+            notificationSPlay();
+            toast.success(`${socketMessage.senderName} sent a new message!`);
+        }
+    }, [socketMessage]);
+
     const emojiSend = (emu) => {
         setNewMessage(`${newMessage}` + emu);
         socket.current.emit("typingMessage", {
@@ -132,6 +150,7 @@ export const Messenger = () => {
 
     const imageSend = (e) => {
         if (e.target.files.length !== 0) {
+            sendingSPlay();
             const imageName = e.target.files[0].name;
             const newImageName = Date.now() + imageName;
 
@@ -157,6 +176,16 @@ export const Messenger = () => {
 
     return (
         <div className="messenger">
+            <Toaster
+                position={"top-right"}
+                reverseOrder={false}
+                toastOptions={{
+                    style: {
+                        fontSize: "18px",
+                    },
+                }}
+            />
+
             <div className="row">
                 <div className="col-3">
                     <div className="left-side">
