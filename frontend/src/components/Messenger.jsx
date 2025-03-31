@@ -250,7 +250,7 @@ export const Messenger = () => {
                                               setCurrentFriend(fd.fndInfo)
                                           }
                                       >
-                                          <Friends friend={fd} />
+                                          <Friends myId={myInfo.id} friend={fd} />
                                       </div>
                                   ))
                                 : "No Friend"}
