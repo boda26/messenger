@@ -10,6 +10,7 @@ import {
     messageSend,
     getMessage,
     ImageMessageSend,
+    seenMessage
 } from "../store/actions/messengerAction";
 import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
@@ -19,7 +20,9 @@ import sendingSound from "../audio/sending.mp3";
 
 export const Messenger = () => {
     const { myInfo } = useSelector((state) => state.auth);
-    const { friends, message } = useSelector((state) => state.messenger);
+    const { friends, message, messageSendSuccess } = useSelector(
+        (state) => state.messenger
+    );
     const [currentFriend, setCurrentFriend] = useState("");
     const [newMessage, setNewMessage] = useState("");
     const [activeUser, setActiveUser] = useState([]);
@@ -47,17 +50,6 @@ export const Messenger = () => {
             receiverId: currentFriend._id,
             message: newMessage ? newMessage : "❤",
         };
-
-        socket.current.emit("sendMessage", {
-            senderId: myInfo.id,
-            senderName: myInfo.userName,
-            receiverId: currentFriend._id,
-            time: new Date(),
-            message: {
-                text: newMessage ? newMessage : "❤",
-                image: "",
-            },
-        });
 
         socket.current.emit("typingMessage", {
             senderId: myInfo.id,
@@ -117,6 +109,13 @@ export const Messenger = () => {
                         message: socketMessage,
                     },
                 });
+                dispatch(seenMessage(socketMessage))
+                dispatch({
+                    type: "UPDATE_FRIEND_MESSAGE",
+                    payload: {
+                        msgInfo: socketMessage,
+                    },
+                });
             }
         }
     }, [socketMessage]);
@@ -138,6 +137,21 @@ export const Messenger = () => {
             toast.success(`${socketMessage.senderName} sent a new message!`);
         }
     }, [socketMessage]);
+
+    useEffect(() => {
+        if (messageSendSuccess) {
+            socket.current.emit("sendMessage", message[message.length - 1]);
+            dispatch({
+                type: "UPDATE_FRIEND_MESSAGE",
+                payload: {
+                    msgInfo: message[message.length - 1],
+                },
+            });
+            dispatch({
+                type: "MESSAGE_SEND_SUCCESS_CLEAR",
+            });
+        }
+    }, [messageSendSuccess]);
 
     const emojiSend = (emu) => {
         setNewMessage(`${newMessage}` + emu);
@@ -250,7 +264,10 @@ export const Messenger = () => {
                                               setCurrentFriend(fd.fndInfo)
                                           }
                                       >
-                                          <Friends myId={myInfo.id} friend={fd} />
+                                          <Friends
+                                              myId={myInfo.id}
+                                              friend={fd}
+                                          />
                                       </div>
                                   ))
                                 : "No Friend"}

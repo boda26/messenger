@@ -70,10 +70,14 @@ export const ImageMessageSend = (data) => async (dispatch) => {
         dispatch({
             type: MESSAGE_SEND_SUCCESS,
             payload: {
-                message: response.data.message
-            }
-        })
+                message: response.data.message,
+            },
+        });
     } catch (error) {
         console.log(error.response.data);
     }
+};
+
+export const seenMessage = (msg) => async (dispatch) => {
+    console.log(msg);
 };
