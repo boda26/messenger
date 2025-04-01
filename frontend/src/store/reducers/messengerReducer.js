@@ -4,13 +4,19 @@ import {
     MESSAGE_SEND_SUCCESS,
     SOCKET_MESSAGE,
     UPDATE_FRIEND_MESSAGE,
-    MESSAGE_SEND_SUCCESS_CLEAR
+    MESSAGE_SEND_SUCCESS_CLEAR,
+    SEEN_MESSAGE,
+    DELIVERED_MESSAGE,
+    UPDATE,
+    MESSAGE_GET_SUCCESS_CLEAR,
+    SEEN_ALL,
 } from "../types/messengerType";
 
 const messengerState = {
     friends: [],
     message: [],
     messageSendSuccess: false,
+    messageGetSuccess: false,
 };
 
 export const messengerReducer = (state = messengerState, action) => {
@@ -24,6 +30,7 @@ export const messengerReducer = (state = messengerState, action) => {
     if (type === MESSAGE_GET_SUCCESS) {
         return {
             ...state,
+            messageGetSuccess: true,
             message: payload.message,
         };
     }
@@ -47,13 +54,62 @@ export const messengerReducer = (state = messengerState, action) => {
                 f.fndInfo._id === payload.msgInfo.senderId
         );
         state.friends[index].msgInfo = payload.msgInfo;
+        state.friends[index].msgInfo.status = payload.status;
         return state;
     }
     if (type === MESSAGE_SEND_SUCCESS_CLEAR) {
         return {
             ...state,
-            messageSendSuccess: false
+            messageSendSuccess: false,
+        };
+    }
+    if (type === SEEN_MESSAGE) {
+        const index = state.friends.findIndex(
+            (f) =>
+                f.fndInfo._id === payload.msgInfo.receiverId ||
+                f.fndInfo._id === payload.msgInfo.senderId
+        );
+        state.friends[index].msgInfo.status = "seen";
+        return {
+            ...state,
+        };
+    }
+    if (type === DELIVERED_MESSAGE) {
+        const index = state.friends.findIndex(
+            (f) =>
+                f.fndInfo._id === payload.msgInfo.receiverId ||
+                f.fndInfo._id === payload.msgInfo.senderId
+        );
+        state.friends[index].msgInfo.status = "delivered";
+        return {
+            ...state,
+        };
+    }
+    if (type === UPDATE) {
+        const index = state.friends.findIndex(
+            (f) => f.fndInfo._id === payload.id
+        );
+        if (state.friends[index].msgInfo) {
+            state.friends[index].msgInfo.status = "seen";
         }
+        return {
+            ...state,
+        };
+    }
+    if (type === MESSAGE_GET_SUCCESS_CLEAR) {
+        return {
+            ...state,
+            messageGetSuccess: false,
+        };
+    }
+    if (type === SEEN_ALL) {
+        const index = state.friends.findIndex(
+            (f) => f.fndInfo._id === payload.receiverId
+        );
+        state.friends[index].msgInfo.status = "seen";
+        return {
+            ...state,
+        };
     }
     return state;
 };

@@ -10,7 +10,8 @@ import {
     messageSend,
     getMessage,
     ImageMessageSend,
-    seenMessage
+    seenMessage,
+    updateMessage,
 } from "../store/actions/messengerAction";
 import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
@@ -20,9 +21,8 @@ import sendingSound from "../audio/sending.mp3";
 
 export const Messenger = () => {
     const { myInfo } = useSelector((state) => state.auth);
-    const { friends, message, messageSendSuccess } = useSelector(
-        (state) => state.messenger
-    );
+    const { friends, message, messageSendSuccess, messageGetSuccess } =
+        useSelector((state) => state.messenger);
     const [currentFriend, setCurrentFriend] = useState("");
     const [newMessage, setNewMessage] = useState("");
     const [activeUser, setActiveUser] = useState([]);
@@ -69,17 +69,43 @@ export const Messenger = () => {
 
     useEffect(() => {
         if (friends && friends.length > 0) {
-            setCurrentFriend(friends[0]);
+            setCurrentFriend(friends[0].fndInfo);
         }
     }, [friends]);
 
     useEffect(() => {
         dispatch(getMessage(currentFriend._id));
+        if (friends.length > 0) {
+        }
     }, [currentFriend?._id]);
 
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [message]);
+
+    useEffect(() => {
+        if (message.length > 0) {
+            if (
+                message[message.length - 1].senderId !== myInfo.id &&
+                message[message.length - 1].status !== "seen"
+            ) {
+                dispatch({
+                    type: "UPDATE",
+                    payload: {
+                        id: currentFriend._id,
+                    },
+                });
+                socket.current.emit("seen", {
+                    senderId: currentFriend._id,
+                    receiverId: myInfo.id,
+                });
+                dispatch(seenMessage({ _id: message[message.length - 1]._id }));
+            }
+        }
+        dispatch({
+            type: "MESSAGE_GET_SUCCESS_CLEAR",
+        });
+    }, [messageGetSuccess]);
 
     useEffect(() => {
         socket.current = io("ws://localhost:8000");
@@ -90,6 +116,31 @@ export const Messenger = () => {
 
         socket.current.on("typingMessageGet", (data) => {
             setTypingMessage(data);
+        });
+
+        socket.current.on("msgSeenResponse", (msg) => {
+            dispatch({
+                type: "SEEN_MESSAGE",
+                payload: {
+                    msgInfo: msg,
+                },
+            });
+        });
+
+        socket.current.on("msgDeliveredResponse", (msg) => {
+            dispatch({
+                type: "DELIVERED_MESSAGE",
+                payload: {
+                    msgInfo: msg,
+                },
+            });
+        });
+
+        socket.current.on("seenSuccess", (data) => {
+            dispatch({
+                type: "SEEN_ALL",
+                payload: data,
+            });
         });
     }, []);
 
@@ -109,11 +160,13 @@ export const Messenger = () => {
                         message: socketMessage,
                     },
                 });
-                dispatch(seenMessage(socketMessage))
+                dispatch(seenMessage(socketMessage));
+                socket.current.emit("messageSeen", socketMessage);
                 dispatch({
                     type: "UPDATE_FRIEND_MESSAGE",
                     payload: {
                         msgInfo: socketMessage,
+                        status: "seen",
                     },
                 });
             }
@@ -135,6 +188,15 @@ export const Messenger = () => {
         ) {
             notificationSPlay();
             toast.success(`${socketMessage.senderName} sent a new message!`);
+            dispatch(updateMessage(socketMessage));
+            socket.current.emit("deliveredMessage", socketMessage);
+            dispatch({
+                type: "UPDATE_FRIEND_MESSAGE",
+                payload: {
+                    msgInfo: socketMessage,
+                    status: "delivered",
+                },
+            });
         }
     }, [socketMessage]);
 

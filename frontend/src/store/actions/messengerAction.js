@@ -79,5 +79,28 @@ export const ImageMessageSend = (data) => async (dispatch) => {
 };
 
 export const seenMessage = (msg) => async (dispatch) => {
-    console.log(msg);
+    try {
+        const response = await axios.post(
+            `http://localhost:5050/api/messenger/seen-message`,
+            msg,
+            { withCredentials: true }
+        );
+        console.log(response.data);
+    } catch (error) {
+        console.log(error.response.message);
+    }
 };
+
+export const updateMessage = (msg) => async (dispatch) => {
+    try {
+        const response = await axios.post(
+            `http://localhost:5050/api/messenger/delivered-message`,
+            msg,
+            { withCredentials: true }
+        );
+        console.log(response.data);
+    } catch (error) {
+        console.log(error.response.message);
+    }
+};
+
