@@ -301,7 +301,7 @@ export const Messenger = () => {
                             </div>
                         </div>
 
-                        <div className="active-friends">
+                        {/* <div className="active-friends">
                             {activeUser && activeUser.length > 0
                                 ? activeUser.map((u) => (
                                       <ActiveFriend
@@ -310,7 +310,7 @@ export const Messenger = () => {
                                       />
                                   ))
                                 : ""}
-                        </div>
+                        </div> */}
 
                         <div className="friends">
                             {friends && friends.length > 0
@@ -329,6 +329,7 @@ export const Messenger = () => {
                                           <Friends
                                               myId={myInfo.id}
                                               friend={fd}
+                                              activeUser={activeUser}
                                           />
                                       </div>
                                   ))
