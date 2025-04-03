@@ -5,7 +5,7 @@ const {
     messageGet,
     imageMessageSend,
     messageSeen,
-    deliveredMessage
+    deliveredMessage,
 } = require("../controller/messengerController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 

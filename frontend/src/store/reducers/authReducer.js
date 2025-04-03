@@ -1,5 +1,6 @@
 import {
     ERROR_CLEAR,
+    LOGOUT_SUCCESS,
     REGISTER_FAIL,
     REGISTER_SUCCESS,
     SUCCESS_MESSAGE_CLEAR,
@@ -69,6 +70,14 @@ export const authReducer = (state = authState, action) => {
         return {
             ...state,
             error: "",
+        };
+    }
+    if (type === LOGOUT_SUCCESS) {
+        return {
+            ...state,
+            authenticate: false,
+            successMessage: "Logout success",
+            myInfo: "",
         };
     }
 
