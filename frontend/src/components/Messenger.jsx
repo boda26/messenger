@@ -12,6 +12,8 @@ import {
     ImageMessageSend,
     seenMessage,
     updateMessage,
+    getTheme,
+    themeSet,
 } from "../store/actions/messengerAction";
 import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
@@ -22,8 +24,13 @@ import { userLogout } from "../store/actions/authAction";
 
 export const Messenger = () => {
     const { myInfo } = useSelector((state) => state.auth);
-    const { friends, message, messageSendSuccess, messageGetSuccess } =
-        useSelector((state) => state.messenger);
+    const {
+        friends,
+        message,
+        messageSendSuccess,
+        messageGetSuccess,
+        themeMood,
+    } = useSelector((state) => state.messenger);
     const [currentFriend, setCurrentFriend] = useState("");
     const [newMessage, setNewMessage] = useState("");
     const [activeUser, setActiveUser] = useState([]);
@@ -217,6 +224,10 @@ export const Messenger = () => {
         }
     }, [messageSendSuccess]);
 
+    useEffect(() => {
+        dispatch(getTheme());
+    }, []);
+
     const emojiSend = (emu) => {
         setNewMessage(`${newMessage}` + emu);
         socket.current.emit("typingMessage", {
@@ -258,7 +269,7 @@ export const Messenger = () => {
     };
 
     return (
-        <div className="messenger">
+        <div className={themeMood === "dark" ? "messenger theme" : "messenger"}>
             <Toaster
                 position={"top-right"}
                 reverseOrder={false}
@@ -308,6 +319,11 @@ export const Messenger = () => {
                                     <div className="on">
                                         <label htmlFor="dark">ON</label>
                                         <input
+                                            onChange={(e) =>
+                                                dispatch(
+                                                    themeSet(e.target.value)
+                                                )
+                                            }
                                             type="radio"
                                             value="dark"
                                             name="theme"
@@ -318,6 +334,11 @@ export const Messenger = () => {
                                     <div className="of">
                                         <label htmlFor="white">OFF</label>
                                         <input
+                                            onChange={(e) =>
+                                                dispatch(
+                                                    themeSet(e.target.value)
+                                                )
+                                            }
                                             type="radio"
                                             value="white"
                                             name="theme"
