@@ -268,6 +268,19 @@ export const Messenger = () => {
         socket.current.emit("logout", myInfo.id);
     };
 
+    const search = (e) => {
+        const getFriendClass = document.getElementsByClassName("hover-friend");
+        const friendNameClass = document.getElementsByClassName("Fd_name");
+        for (var i = 0; i < getFriendClass.length, i < friendNameClass.length; i++) {
+            let text = friendNameClass[i].innerText.toLowerCase()
+            if (text.indexOf(e.target.value.toLowerCase()) > -1) {
+                getFriendClass[i].style.display = ''
+            } else {
+                getFriendClass[i].style.display = 'none'
+            }
+        }
+    };
+
     return (
         <div className={themeMood === "dark" ? "messenger theme" : "messenger"}>
             <Toaster
@@ -359,6 +372,7 @@ export const Messenger = () => {
                                     <FaSistrix />
                                 </button>
                                 <input
+                                    onChange={search}
                                     type="text"
                                     placeholder="search"
                                     className="form-control"
